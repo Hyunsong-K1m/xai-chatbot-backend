@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-sqlmodel
-chromadb
-langchain
-langchain-openai
-python-dotenv
-pydantic-settings
-openai
