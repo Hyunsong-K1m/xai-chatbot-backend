@@ -3,9 +3,14 @@
 
 class XAIChatbotAPI {
   constructor() {
-    // 개발 서버 URL (실제 서버 URL로 변경 필요)
-    this.baseURL = 'http://192.168.1.100:8000'; // 로컬 IP 사용
-    // this.baseURL = '<내꺼 URL 적기>'; // 프로덕션 URL
+    // 🔴 Ubuntu 서버 IP로 변경!
+    this.baseURL = 'http://192.168.119.129:8000'; // Ubuntu 서버 주소
+    
+    // 개발/프로덕션 환경별 설정 (선택사항)
+    // const isDev = __DEV__;  // React Native의 개발 모드 확인
+    // this.baseURL = isDev 
+    //   ? 'http://192.168.119.129:8000'  // 개발 서버
+    //   : 'https://your-production-server.com';  // 프로덕션 서버
     
     this.apiPath = '/api/v1/mobile';
     this.sessionId = null;
@@ -20,6 +25,8 @@ class XAIChatbotAPI {
     const url = `${this.baseURL}${this.apiPath}${endpoint}`;
     
     try {
+      console.log('API Call:', url); // 디버깅용
+      
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -36,7 +43,26 @@ class XAIChatbotAPI {
       return await response.json();
     } catch (error) {
       console.error(`API Error [${endpoint}]:`, error);
+      
+      // 네트워크 에러 체크
+      if (error.message === 'Network request failed') {
+        throw new Error('서버에 연결할 수 없습니다. 네트워크를 확인해주세요.');
+      }
+      
       throw error;
+    }
+  }
+
+  // 연결 테스트
+  async testConnection() {
+    try {
+      const response = await fetch(`${this.baseURL}/api/v1/mobile/health`);
+      const data = await response.json();
+      console.log('Connection test successful:', data);
+      return true;
+    } catch (error) {
+      console.error('Connection test failed:', error);
+      return false;
     }
   }
 
