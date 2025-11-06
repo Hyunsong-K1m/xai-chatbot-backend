@@ -1,11 +1,10 @@
-# app/main.py
-import os
 from fastapi import FastAPI
-from dotenv import load_dotenv
+from app.routers import rag
 
-load_dotenv()
-app = FastAPI(title=os.getenv("APP_NAME", "app"))
+app = FastAPI()
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+@app.get("/")
+def root():
+    return {"message": "서버 정상 동작 중"}
+
+app.include_router(rag.router, prefix="/api/v1")
