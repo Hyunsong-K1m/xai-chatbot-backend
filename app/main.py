@@ -1,10 +1,17 @@
 from fastapi import FastAPI
 from app.routers import rag
+from app.vector.chroma_client import get_chroma_collection
 
 app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "서버 정상 동작 중"}
+    return {"message": "server running"}
 
-app.include_router(rag.router, prefix="/api/v1")
+@app.get("/test-search")
+def test_search(query: str):
+    db = get_chroma_collection()
+    results = db.query(query_texts=[query], n_results=3)
+    return {"query": query, "results": results}
+
+app.include_router(rag.router)
