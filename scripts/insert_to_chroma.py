@@ -6,16 +6,30 @@ from app.vector.chroma_client import get_chroma_collection
 def load_json(path):
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    if isinstance(data, dict) and "상품목록" in data:
-        data = data["상품목록"]
+    if isinstance(data, dict):
+        if "상품목록" in data:
+            data = data["상품목록"]
+        elif "products" in data:
+            data = data["products"]
+        else:
+            data = [data]
     return data
 
 
-def safe_get(d, key, default=""):
-    """딕셔너리 안전 접근용 헬퍼"""
-    if isinstance(d, dict):
-        return d.get(key, default)
-    return default
+def flatten_dict(d, parent_key="", sep="_"):
+    """중첩 딕셔너리를 flat하게 펴줌 (예: 금리정보_기본이자율_이율)"""
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        elif isinstance(v, list):
+            # 리스트는 최대 3개 항목만 요약 저장
+            joined = ", ".join([str(i)[:100] for i in v[:3]])
+            items.append((new_key, joined))
+        else:
+            items.append((new_key, str(v)))
+    return dict(items)
 
 
 def insert_to_chroma(data):
@@ -23,42 +37,25 @@ def insert_to_chroma(data):
     count = 0
 
     for product in data:
-        기본정보 = product.get("기본정보", {}) or {}
-        금리정보 = product.get("금리정보", {}) or {}
-        계약정보 = product.get("계약정보", {}) or {}
-        청약정보 = product.get("청약및정부지원정보", {}) or {}
-        위험 = product.get("위험유의사항", {}) or {}
+        flat = flatten_dict(product)
 
-        # 기본이자율 처리
-        기본이자율_text = ""
-        if isinstance(금리정보.get("기본이자율"), list):
-            rates = []
-            for r in 금리정보["기본이자율"]:
-                if isinstance(r, dict):
-                    기간 = r.get("계약기간", "")
-                    이율 = r.get("이율", "")
-                    rates.append(f"{기간} {이율}")
-            기본이자율_text = ", ".join(rates)
+        text_parts = [
+            f"은행명: {flat.get('은행명', '')}",
+            f"상품명: {flat.get('상품명', '')}",
+            f"상품유형: {flat.get('상품유형', '')}",
+            f"상품설명: {flat.get('기본정보_상품설명', '')}",
+            f"가입대상: {flat.get('기본정보_가입대상', '')}",
+            f"기본금리: {flat.get('금리정보_기본이자율', '')}",
+            f"우대이자율: {flat.get('금리정보_우대이자율', '')}",
+            f"최고이자율: {flat.get('금리정보_최고이자율_총이율', '')}",
+            f"중도해지이율: {flat.get('금리정보_중도해지이율', '')}",
+            f"정부지원형: {flat.get('청약및정부지원정보_정부지원형', '')}",
+            f"청약적용여부: {flat.get('청약및정부지원정보_청약적용여부', '')}",
+            f"위험유의사항: {flat.get('위험유의사항', '')}",
+        ]
 
-        # 안전한 접근으로 텍스트 구성
-        text = (
-            f"상품명: {safe_get(product, '상품명')}\n"
-            f"상품유형: {safe_get(product, '상품유형')}\n"
-            f"상품설명: {safe_get(기본정보, '상품설명')}\n"
-            f"가입대상: {safe_get(기본정보, '가입대상')}\n"
-            f"가입한도: {safe_get(기본정보, '가입한도')}\n"
-            f"이자지급시기: {safe_get(기본정보, '이자지급시기')}\n"
-            f"예금자보호: {safe_get(기본정보.get('예금자보호', {}), '보호여부')}\n"
-            f"기본금리: {기본이자율_text}\n"
-            f"최고이자율: {safe_get(safe_get(금리정보, '최고이자율', {}), '총이율')}\n"
-            f"중도해지이율: {safe_get(금리정보, '중도해지이율')}\n"
-            f"소득공제: {safe_get(safe_get(계약정보, '소득공제', {}), '적용여부')}, "
-            f"{safe_get(safe_get(계약정보, '소득공제', {}), '공제한도')}\n"
-            f"청약적용여부: {safe_get(청약정보, '청약적용여부')}\n"
-            f"정부지원형: {safe_get(청약정보, '정부지원형')}\n"
-            f"위험유의사항: {safe_get(위험, '청약자격상실')}, {safe_get(위험, '소득공제추징')}"
-        )
-
+        # join 후 길이 제한
+        text = "\n".join([t for t in text_parts if t.strip()])[:3000]
         db.add_texts([text])
         count += 1
 

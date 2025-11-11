@@ -48,10 +48,13 @@ llm = ChatOpenAI(
 )
 
 # --- 4. 프롬프트 템플릿 ---
+#현송 : 프롬포트 약간 수정
 prompt = ChatPromptTemplate.from_template(
     """당신은 금융 상품 질의응답 어시스턴트입니다.
-제공된 문서를 기반으로 답해주세요.
-모르면 "제공된 정보에서는 확인할 수 없습니다."라고 말하세요.
+질문과 관련된 정보를 아래 문서에서 찾아 정확히 요약하여 답변하세요.
+반드시 문서 내용에 근거해 설명하며, 근거 문서에 있는 숫자나 금리 수치를 인용해 설명하세요.
+문서에 내용이 있으면 절대 '확인할 수 없습니다'라고 말하지 마세요.
+정말로 문서에 아무 내용도 없을 때만 그렇게 답하세요.
 
 [문서 발췌]
 {context}
@@ -66,17 +69,33 @@ prompt = ChatPromptTemplate.from_template(
 def _format_docs(docs: List[Any]) -> str:
     return "\n\n---\n\n".join(getattr(d, "page_content", "") for d in docs)
 
-# --- 6. RAG 체인 구성 ---
+## --- 6. RAG 체인 구성 ---
 def ask(question: str) -> str:
-    # 검색된 문서 가져오기
-    docs = retriever.invoke(question)
+    # 질문 전처리 (불필요한 기호, 띄어쓰기 제거)
+    clean_question = (
+        question.replace(",", "")
+        .replace(" ", "")
+        .replace("은행", "은행 ")  # 은행명 뒤에 공백 보정
+        .strip()
+    )
+    print(f"[질문 입력] {question} -> [정제 후] {clean_question}")
+
+    #  검색된 문서 가져오기 (검색 범위 확장)
+    docs = retriever.vectorstore.similarity_search(clean_question, k=10)
+    print(f"[검색된 문서 수] {len(docs)}")
+
+    # 검색 결과가 없을 때 대비
+    if not docs:
+        return "제공된 정보에서는 확인할 수 없습니다."
+
+    # 문서 내용 포맷팅
     context = _format_docs(docs)
 
-    # 프롬프트 채우기
+    #  프롬프트 채우기
     final_prompt = prompt.format(context=context, question=question)
 
-    # LLM 호출
+    # LM 호출
     response = llm.invoke(final_prompt)
 
-    # 텍스트만 추출
+    #  텍스트만 추출
     return response.content if hasattr(response, "content") else str(response)

@@ -11,7 +11,11 @@ def root():
 @app.get("/test-search")
 def test_search(query: str):
     db = get_chroma_collection()
-    results = db.query(query_texts=[query], n_results=3)
-    return {"query": query, "results": results}
+    results = db.similarity_search(query, k=3)
 
-app.include_router(rag.router)
+    return {
+        "query": query,
+        "results": [r.page_content for r in results]
+    }
+
+app.include_router(rag.router, prefix="/api/v1")
