@@ -1,15 +1,15 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from app.routers import rag
 from app.routers import health
 from app.routers import mobile_api #<heo> 모바일 api 라우터 추가
 
-APP_NAME = "finance-qa"
-API_PREFIX = "/api/v1"
-CORS = ["*"]
+app = FastAPI()
 
-app = FastAPI(title=APP_NAME)
-app.add_middleware(CORSMiddleware, allow_origins=CORS, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
-app.include_router(health.router, prefix=API_PREFIX)
+@app.get("/")
+def root():
+    return {"message": "서버 정상 동작 중"}
+
+app.include_router(rag.router, prefix="/api/v1")
 
 
 #<heo> 모바일 api 라우터 추가

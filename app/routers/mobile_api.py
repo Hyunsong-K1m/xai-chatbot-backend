@@ -4,6 +4,11 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 import uuid
 import logging
+import os
+import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 로거 설정 (간단한 버전)
 logging.basicConfig(level=logging.INFO)
@@ -97,15 +102,89 @@ class SessionManager:
 session_manager = SessionManager()
 
 # ========================
-# Mock 서비스 (임시)
+# 실제 AI 서비스
 # ========================
 
-class MockChatService:
-    """임시 채팅 서비스"""
-    async def process_message(self, message: str, **kwargs):
-        # 간단한 에코 응답
-        return f"응답: {message}"
+class RealChatService:
+    def __init__(self):
+        # 환경변수에서 API 키 가져오기
+        self.openai_key = os.getenv("OPENAI_API_KEY")
+        self.xai_key = os.getenv("XAI_API_KEY")
+        
+        # OpenAI 우선, 없으면 XAI 사용
+        if self.openai_key:
+            self.api_url = "https://api.openai.com/v1/chat/completions"
+            self.api_key = self.openai_key
+            self.model = "gpt-3.5-turbo"  # 또는 "gpt-4"
+        elif self.xai_key:
+            self.api_url = "https://api.x.ai/v1/chat/completions"
+            self.api_key = self.xai_key
+            self.model = "grok-beta"
+        else:
+            self.api_key = None
+            logger.warning("No AI API key found. Using mock responses.")
+    
+    async def process_message(self, message: str, session_id: str = None, **kwargs):
+        """실제 AI API 호출"""
+        
+        # API 키가 없으면 Mock 응답
+        if not self.api_key:
+            return f"[Mock] 응답: {message}"
+        
+        try:
+            # 대화 히스토리 가져오기
+            session = session_manager.get_session(session_id) if session_id else None
+            messages = []
+            
+            # 시스템 프롬프트
+            messages.append({
+                "role": "system", 
+                "content": "당신은 친절한 AI 비서입니다. 사용자의 질문에 도움이 되는 답변을 제공합니다."
+            })
+            
+            # 이전 대화 컨텍스트 (최근 5개만)
+            if session and session.get("messages"):
+                for msg in session["messages"][-5:]:
+                    if msg.get("role") and msg.get("content"):
+                        messages.append({
+                            "role": msg["role"],
+                            "content": msg["content"]
+                        })
+            
+            # 현재 메시지 추가
+            messages.append({"role": "user", "content": message})
+            
+            # API 호출
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    self.api_url,
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": self.model,
+                        "messages": messages,
+                        "temperature": 0.7,
+                        "max_tokens": 500
+                    }
+                )
+                
+                if response.status_code != 200:
+                    logger.error(f"AI API Error: {response.status_code} - {response.text}")
+                    return "죄송합니다. AI 응답을 생성하는데 문제가 발생했습니다."
+                
+                result = response.json()
+                return result["choices"][0]["message"]["content"]
+                
+        except httpx.TimeoutException:
+            logger.error("AI API timeout")
+            return "응답 시간이 초과되었습니다. 다시 시도해주세요."
+        except Exception as e:
+            logger.error(f"AI API Error: {str(e)}")
+            return "AI 응답 생성 중 오류가 발생했습니다."
 
+# MockRAGService는 그대로 유지
 class MockRAGService:
     """임시 RAG 서비스"""
     async def search(self, query: str, top_k: int = 5):
@@ -114,8 +193,8 @@ class MockRAGService:
     async def generate_answer(self, query: str, search_results: list):
         return f"RAG 응답: {query}에 대한 답변입니다."
 
-# Mock 서비스 인스턴스
-mock_chat_service = MockChatService()
+# 서비스 인스턴스 (Mock 대신 Real 사용)
+chat_service = RealChatService()  # 변경!
 mock_rag_service = MockRAGService()
 
 # ========================
@@ -171,9 +250,10 @@ async def send_message(request: ChatRequest):
         }
         session_manager.update_session(session_id, user_message)
         
-        # Mock 서비스 사용
-        ai_response = await mock_chat_service.process_message(
-            message=request.message
+        # 실제 AI 서비스 사용 (변경!)
+        ai_response = await chat_service.process_message(
+            message=request.message,
+            session_id=session_id  # session_id 추가
         )
         
         # AI 응답 저장
@@ -193,6 +273,7 @@ async def send_message(request: ChatRequest):
     except Exception as e:
         logger.error(f"Chat processing failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/session/{session_id}/history", summary="채팅 히스토리 조회")
 async def get_chat_history(session_id: str):
@@ -245,3 +326,4 @@ async def rag_query(
     except Exception as e:
         logger.error(f"RAG query failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+

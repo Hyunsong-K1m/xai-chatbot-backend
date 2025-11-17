@@ -7,3 +7,20 @@ langchain-openai
 python-dotenv
 pydantic-settings
 openai
+
+#<heo> - 필수 패키지
+# FastAPI 핵심
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# 필수 패키지
+python-dotenv==1.0.0      # 환경변수 관리
+httpx==0.25.2             # API 호출용
+python-multipart==0.0.6   # 파일 업로드
+
+# AI API 연동
+openai==1.6.0             # OpenAI GPT 사용시
+
+# 유틸리티
+aiofiles==23.2.1          # 비동기 파일 처리
