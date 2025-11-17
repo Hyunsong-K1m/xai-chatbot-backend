@@ -11,7 +11,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
-from config import (
+from app.config import (
     PERSIST_DIRECTORY,
     COLLECTION_NAME,
     OPENAI_API_KEY,
@@ -71,31 +71,24 @@ def _format_docs(docs: List[Any]) -> str:
 
 ## --- 6. RAG 체인 구성 ---
 def ask(question: str) -> str:
-    # 질문 전처리 (불필요한 기호, 띄어쓰기 제거)
+    # 질문 전처리 (불필요한 특수문자만 제거, 띄어쓰기는 유지)
     clean_question = (
         question.replace(",", "")
-        .replace(" ", "")
-        .replace("은행", "은행 ")  # 은행명 뒤에 공백 보정
+        .replace("?", "")
+        .replace("!", "")
         .strip()
     )
     print(f"[질문 입력] {question} -> [정제 후] {clean_question}")
 
-    #  검색된 문서 가져오기 (검색 범위 확장)
+    # 검색된 문서 가져오기
     docs = retriever.vectorstore.similarity_search(clean_question, k=10)
     print(f"[검색된 문서 수] {len(docs)}")
 
-    # 검색 결과가 없을 때 대비
     if not docs:
         return "제공된 정보에서는 확인할 수 없습니다."
 
-    # 문서 내용 포맷팅
     context = _format_docs(docs)
-
-    #  프롬프트 채우기
     final_prompt = prompt.format(context=context, question=question)
 
-    # LM 호출
     response = llm.invoke(final_prompt)
-
-    #  텍스트만 추출
     return response.content if hasattr(response, "content") else str(response)

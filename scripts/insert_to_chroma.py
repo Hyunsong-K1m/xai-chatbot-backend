@@ -1,6 +1,9 @@
+import os
 import json
 import glob
 from app.vector.chroma_client import get_chroma_collection
+from langchain_chroma import Chroma
+
 
 
 def load_json(path):
@@ -24,7 +27,6 @@ def flatten_dict(d, parent_key="", sep="_"):
         if isinstance(v, dict):
             items.extend(flatten_dict(v, new_key, sep=sep).items())
         elif isinstance(v, list):
-            # 리스트는 최대 3개 항목만 요약 저장
             joined = ", ".join([str(i)[:100] for i in v[:3]])
             items.append((new_key, joined))
         else:
@@ -34,6 +36,7 @@ def flatten_dict(d, parent_key="", sep="_"):
 
 def insert_to_chroma(data):
     db = get_chroma_collection()
+    batch = []
     count = 0
 
     for product in data:
@@ -54,10 +57,19 @@ def insert_to_chroma(data):
             f"위험유의사항: {flat.get('위험유의사항', '')}",
         ]
 
-        # join 후 길이 제한
         text = "\n".join([t for t in text_parts if t.strip()])[:3000]
-        db.add_texts([text])
+        batch.append(text)
         count += 1
+
+        #  일정 개수마다 배치 저장
+        if len(batch) >= 50:
+            db.add_texts(batch)
+            print(f"{count}개 중 {len(batch)}개 삽입 완료")
+            batch = []
+
+    # 남은 데이터 저장
+    if batch:
+        db.add_texts(batch)
 
     db.persist()
     print(f"{count}개의 상품이 ChromaDB에 저장되었습니다.")
