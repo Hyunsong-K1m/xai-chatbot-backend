@@ -1,20 +1,25 @@
 import os
-from chromadb import PersistentClient
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
-
-
-def get_chroma_client():
-    path = os.getenv("CHROMA_PATH", "./data/chroma")
-    return PersistentClient(path)
-
+from app.config import PERSIST_DIRECTORY, COLLECTION_NAME, MODEL_NAME, MODEL_KWARGS, ENCODE_KWARGS
 
 def get_chroma_collection():
-    client = get_chroma_client()
-    embeddings = HuggingFaceEmbeddings(model_name="nlpai-lab/KURE-v1")
+    """
+    ChromaDB 벡터 스토어 인스턴스를 반환합니다.
+    환경변수 및 config.py 설정을 사용합니다.
+    """
+    # 임베딩 모델 설정
+    embeddings = HuggingFaceEmbeddings(
+        model_name=MODEL_NAME,
+        model_kwargs=MODEL_KWARGS,
+        encode_kwargs=ENCODE_KWARGS
+    )
+
+    # ChromaDB 연결
     db = Chroma(
-        client=client,
-        collection_name="financial_products",
+        persist_directory=PERSIST_DIRECTORY,
+        collection_name=COLLECTION_NAME,
         embedding_function=embeddings
     )
+
     return db

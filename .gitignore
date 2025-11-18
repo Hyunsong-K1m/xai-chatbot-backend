@@ -1,6 +1,35 @@
-.venv/
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.log
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# 환경변수 (중요!)
 .env
-data/
+.env.local
+
+# 데이터베이스
+*.db
+*.sqlite
+*.sqlite3
 db.sqlite3
+
+# ChromaDB 벡터 DB
+data/chroma/
+chroma/
+
+# 데이터 파일 (필요시 주석 해제)
+# data/
+
+# VSCode
+.vscode/
+
+# OS 파일
+.DS_Store
+Thumbs.db
