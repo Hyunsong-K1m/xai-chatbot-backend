@@ -1,41 +1,22 @@
-<<<<<<< HEAD
-import json
-from app.vector.chroma_client import get_chroma_collection
-import sys, os
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, ROOT_DIR)
-=======
 import os
 import json
 import glob
-from app.vector.chroma_client import get_chroma_collection
-from langchain_chroma import Chroma
->>>>>>> origin/test-fast-api
+import sys
+from pathlib import Path
 
+# 프로젝트 루트를 sys.path에 추가
+ROOT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT_DIR))
+
+from app.vector.chroma_client import get_chroma_collection
+from app.config import JSON_PATH
 
 
 def load_json(path):
+    """JSON 파일 로드 및 상품 목록 추출"""
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-<<<<<<< HEAD
-    # 상품목록 안쪽 구조 처리
-    if isinstance(data, dict) and "상품목록" in data:
-        data = data["상품목록"]
-    return data
 
-def insert_to_chroma(data):
-    db = get_chroma_collection()
-    count = 0
-    for product in data:
-        text = f"{product.get('상품명', '')} {product.get('기본정보', {}).get('상품설명', '')}"
-        db.add_texts([text])
-        count += 1
-    print(f"{count}개의 상품이 ChromaDB에 저장되었습니다.")
-
-if __name__ == "__main__":
-    data = load_json("./data/거치식예금_통합.json")  # 파일명 맞게 수정
-    insert_to_chroma(data)
-=======
     if isinstance(data, dict):
         if "상품목록" in data:
             data = data["상품목록"]
@@ -62,6 +43,7 @@ def flatten_dict(d, parent_key="", sep="_"):
 
 
 def insert_to_chroma(data):
+    """ChromaDB에 금융상품 데이터 삽입"""
     db = get_chroma_collection()
     batch = []
     count = 0
@@ -88,7 +70,7 @@ def insert_to_chroma(data):
         batch.append(text)
         count += 1
 
-        #  일정 개수마다 배치 저장
+        # 일정 개수마다 배치 저장
         if len(batch) >= 50:
             db.add_texts(batch)
             print(f"{count}개 중 {len(batch)}개 삽입 완료")
@@ -98,18 +80,21 @@ def insert_to_chroma(data):
     if batch:
         db.add_texts(batch)
 
-    db.persist()
-    print(f"{count}개의 상품이 ChromaDB에 저장되었습니다.")
+    print(f"✓ 총 {count}개의 상품이 ChromaDB에 저장되었습니다.")
 
 
 if __name__ == "__main__":
     all_data = []
-    json_files = glob.glob("/home/xai/fastapi-backend/data/json/*.json")
+    json_dir = Path(JSON_PATH)
+    json_files = list(json_dir.glob("*.json"))
+
+    print(f"JSON 파일 경로: {json_dir}")
+    print(f"발견된 파일 수: {len(json_files)}\n")
+
     for file in json_files:
-        data = load_json(file)
-        print(f"{file} → {len(data)}개 로드")
+        data = load_json(str(file))
+        print(f"{file.name} → {len(data)}개 로드")
         all_data.extend(data)
 
-    print(f"불러온 전체 상품 수: {len(all_data)}")
+    print(f"\n불러온 전체 상품 수: {len(all_data)}")
     insert_to_chroma(all_data)
->>>>>>> origin/test-fast-api

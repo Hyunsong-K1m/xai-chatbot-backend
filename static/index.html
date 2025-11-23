@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTalk | AI-Powered Financial Lifecycle Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --secondary: #34D399;
+            --accent: #6EE7B7;
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --error: #EF4444;
+
+            --gradient-main: linear-gradient(135deg, #064E3B 0%, #10B981 50%, #34D399 100%);
+            --gradient-hover: linear-gradient(135deg, #059669 0%, #10B981 100%);
+
+            --text-primary: #2C3E50;
+            --text-secondary: #7F8C8D;
+            --text-tertiary: #95A5A6;
+
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8F9FA;
+            --bg-tertiary: #ECF0F1;
+
+            --border: #E1E8ED;
+            --border-light: #F0F4F7;
+
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+        }
+
+        /* Splash Screen */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #064E3B 0%, #10B981 50%, #34D399 100%);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .splash-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .ripple-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .pulse-circle {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        .pulse-text {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+            }
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: rippleEffect 2s ease-out infinite;
+        }
+
+        .ripple:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            left: 50px;
+            top: 50px;
+            animation-delay: 0s;
+        }
+
+        .ripple:nth-child(2) {
+            width: 250px;
+            height: 250px;
+            left: 25px;
+            top: 25px;
+            animation-delay: 0.5s;
+        }
+
+        .ripple:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            left: 0;
+            top: 0;
+            animation-delay: 1s;
+        }
+
+        @keyframes rippleEffect {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .dynamic-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: dynamicRipple 0.8s ease-out;
+        }
+
+        @keyframes dynamicRipple {
+            from {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            to {
+                width: 400px;
+                height: 400px;
+                opacity: 0;
+            }
+        }
+
+        .splash-title {
+            margin-top: 40px;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .splash-subtitle {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 10px;
+        }
+
+        .splash-hint {
+            position: absolute;
+            bottom: 60px;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -1px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #064E3B 0%, #10B981 50%, #34D399 100%);
+            padding: 3rem 2rem;
+            color: white;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+        }
+
+        .lifecycle-stages {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .stage-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: white;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stage-btn.active {
+            background: white;
+            color: var(--primary);
+            opacity: 1;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+        }
+
+        .profile-sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .profile-info h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-info p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-steps {
+            margin-bottom: 1.5rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .step.completed {
+            background: linear-gradient(135deg, #7ED321 0%, #50E3C2 100%);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .step.active {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 14px;
+        }
+
+        .step.completed .step-icon {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-value {
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .goals-section {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .goals-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .goal-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .goal-chip {
+            padding: 0.375rem 0.75rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .goal-chip.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .package-progress {
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .progress-title {
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .chat-header {
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .chat-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .messages-container {
+            height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message.bot .message-avatar {
+            background: var(--primary);
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .message-content {
+            max-width: 70%;
+        }
+
+        .message-bubble {
+            padding: 1rem;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+
+        .message.bot .message-bubble {
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .message.user .message-bubble {
+            background: var(--primary);
+            color: white;
+        }
+
+        .package-card {
+            margin-top: 1rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .package-header {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .package-items {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .package-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .package-item-info {
+            flex: 1;
+        }
+
+        .package-item-type {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .package-item-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .package-item-benefit {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .package-item-rate {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .input-section {
+            display: flex;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .send-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .send-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-sidebar {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-screen" id="splashScreen">
+        <div class="ripple-container" onclick="createRipple(event)">
+            <div class="ripple"></div>
+            <div class="ripple"></div>
+            <div class="ripple"></div>
+            <div class="pulse-circle">
+                <span class="pulse-text">TAP</span>
+            </div>
+        </div>
+        <h1 class="splash-title">FinTalk</h1>
+        <p class="splash-subtitle">Intelligent Financial Lifecycle Platform</p>
+        <p class="splash-hint">화면을 클릭하세요</p>
+    </div>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">FT</div>
+                <div>
+                    <div class="logo-text">FinTalk</div>
+                    <div class="header-subtitle">AI Financial Lifecycle Platform</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Smart Financial Lifecycle Planning</h1>
+            <p class="hero-subtitle">AI가 설계하는 당신만의 맞춤형 금융 포트폴리오</p>
+
+            <div class="lifecycle-stages">
+                <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem; margin-bottom: 1rem; width: 100%;">대화를 통해 아래 단계가 자동으로 선택됩니다</p>
+                <button class="stage-btn" id="stage-student">대학생</button>
+                <button class="stage-btn" id="stage-newbie">사회초년생</button>
+                <button class="stage-btn" id="stage-couple">예비부부</button>
+                <button class="stage-btn" id="stage-married">신혼/육아</button>
+                <button class="stage-btn" id="stage-retirement">은퇴준비</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <aside class="profile-sidebar">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-icon">●</div>
+                    <div class="profile-info">
+                        <h3>나의 금융 라이프</h3>
+                        <p id="currentStage">생애주기를 선택해주세요</p>
+                    </div>
+                </div>
+
+                <div class="progress-steps">
+                    <div class="step" id="step1">
+                        <div class="step-icon">1</div>
+                        <div class="step-content">
+                            <div class="step-label">생애주기</div>
+                            <div class="step-value" id="lifecycleValue">선택 필요</div>
+                        </div>
+                    </div>
+
+                    <div class="step" id="step2">
+                        <div class="step-icon">2</div>
+                        <div class="step-content">
+                            <div class="step-label">재무상황</div>
+                            <div class="step-value" id="financeValue">입력 대기중</div>
+                        </div>
+                    </div>
+
+                    <div class="step" id="step3">
+                        <div class="step-icon">3</div>
+                        <div class="step-content">
+                            <div class="step-label">목표설정</div>
+                            <div class="step-value" id="goalsValue">선택 대기중</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="package-progress">
+                    <div class="progress-title">패키지 구성 완성도</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="chat-header">
+                <h2 class="chat-title">AI Financial Advisor</h2>
+                <p class="chat-subtitle">당신의 생애주기에 맞는 금융 패키지를 설계합니다</p>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="message bot">
+                    <div class="message-avatar">AI</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            안녕하세요! AI 금융 어드바이저입니다.<br><br>
+                            맞춤형 금융 패키지를 추천해드리기 위해 간단한 대화를 나눠보겠습니다.<br><br>
+                            먼저 현재 상황을 편하게 말씀해주세요. 예를 들어:<br>
+                            • "대학교 3학년이에요"<br>
+                            • "첫 직장에 다닌지 6개월 됐어요"<br>
+                            • "내년에 결혼 예정이에요"<br>
+                            • "아이가 초등학교에 입학해요"
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="sendQuick('대학생이에요')">대학생이에요</button>
+                <button class="quick-btn" onclick="sendQuick('첫 직장에 다녀요')">사회초년생이에요</button>
+                <button class="quick-btn" onclick="sendQuick('결혼 준비 중이에요')">결혼 준비중</button>
+                <button class="quick-btn" onclick="sendQuick('27살이에요')">나이로 시작하기</button>
+            </div>
+
+            <div class="input-section">
+                <input type="text"
+                       class="message-input"
+                       id="messageInput"
+                       placeholder="메시지를 입력하세요..."
+                       onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="send-btn" onclick="sendMessage()">전송</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let clickCount = 0;
+
+        function createRipple(event) {
+            const container = event.currentTarget;
+            const ripple = document.createElement('div');
+            ripple.className = 'dynamic-ripple';
+
+            const rect = container.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+
+            container.appendChild(ripple);
+
+            setTimeout(() => {
+                ripple.remove();
+            }, 800);
+
+            clickCount++;
+
+            if (clickCount >= 3) {
+                hideSplash();
+            }
+        }
+
+        function hideSplash() {
+            const splash = document.getElementById('splashScreen');
+            splash.classList.add('hidden');
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 500);
+        }
+
+        setTimeout(() => {
+            if (clickCount < 3) {
+                hideSplash();
+            }
+        }, 5000);
+
+        const profile = {
+            lifecycle: null,
+            income: null,
+            savings: null,
+            goals: []
+        };
+
+        // 현재 질문 컨텍스트 추적
+        let askingFor = null; // 'income' 또는 'savings'
+
+        function selectLifecycle(stage) {
+            const stageNames = {
+                'student': '대학생',
+                'newbie': '사회초년생',
+                'couple': '예비부부',
+                'married': '신혼/육아',
+                'retirement': '은퇴준비'
+            };
+
+            const stageIcons = {
+                'student': 'S',
+                'newbie': 'N',
+                'couple': 'C',
+                'married': 'M',
+                'retirement': 'R'
+            };
+
+            profile.lifecycle = stageNames[stage];
+
+            document.getElementById('currentStage').textContent = stageNames[stage];
+            document.getElementById('lifecycleValue').textContent = stageNames[stage];
+            document.querySelector('.profile-icon').textContent = stageIcons[stage];
+
+            document.getElementById('step1').classList.add('completed');
+            document.querySelector('#step1 .step-icon').textContent = '✓';
+
+            document.querySelectorAll('.stage-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`stage-${stage}`).classList.add('active');
+
+            addMessage(`생애주기를 "${stageNames[stage]}"으로 설정했습니다. 이제 재무 정보를 알려주세요.`, 'bot');
+
+            updateProgress();
+        }
+
+        function toggleGoal(chip) {
+            chip.classList.toggle('selected');
+            const goalText = chip.textContent.trim();
+
+            if (chip.classList.contains('selected')) {
+                profile.goals.push(goalText);
+                addMessage(`"${goalText}" 목표를 추가했습니다. (현재 ${profile.goals.length}개 선택)`, 'bot');
+            } else {
+                profile.goals = profile.goals.filter(g => g !== goalText);
+                addMessage(`"${goalText}" 목표를 제거했습니다.`, 'bot');
+            }
+
+            if (profile.goals.length > 0) {
+                document.getElementById('step3').classList.add('completed');
+                document.querySelector('#step3 .step-icon').textContent = '✓';
+                document.getElementById('goalsValue').textContent = profile.goals.length + '개 선택';
+            } else {
+                document.getElementById('step3').classList.remove('completed');
+                document.querySelector('#step3 .step-icon').textContent = '3';
+                document.getElementById('goalsValue').textContent = '선택 대기중';
+            }
+
+            updateProgress();
+            checkCompletion();
+        }
+
+        function updateProgress() {
+            let completed = 0;
+            if (profile.lifecycle) completed++;
+            if (profile.income && profile.savings) completed++;
+            if (profile.goals.length > 0) completed++;
+
+            const percent = Math.round((completed / 3) * 100);
+            document.getElementById('progressFill').style.width = `${percent}%`;
+            document.getElementById('progressText').textContent = `${percent}%`;
+        }
+
+        function checkCompletion() {
+            if (profile.lifecycle && profile.income && profile.savings && profile.goals.length > 0) {
+                setTimeout(() => {
+                    showPackageRecommendation();
+                }, 1000);
+            }
+        }
+
+        function showPackageRecommendation() {
+            const packageHtml = `
+                <div class="package-card">
+                    <div class="package-header">📦 ${profile.lifecycle} 맞춤 금융 패키지</div>
+                    <div class="package-items">
+                        <div class="package-item">
+                            <div class="package-item-info">
+                                <div class="package-item-type">입출금 계좌</div>
+                                <div class="package-item-name">NH x 카카오페이통장</div>
+                                <div class="package-item-benefit">급여이체 수수료 면제</div>
+                            </div>
+                            <div class="package-item-rate">2.0%</div>
+                        </div>
+                        <div class="package-item">
+                            <div class="package-item-info">
+                                <div class="package-item-type">적금</div>
+                                <div class="package-item-name">NH1934월복리적금</div>
+                                <div class="package-item-benefit">청년 우대, 월복리</div>
+                            </div>
+                            <div class="package-item-rate">4.5%</div>
+                        </div>
+                        <div class="package-item">
+                            <div class="package-item-info">
+                                <div class="package-item-type">비상금 통장</div>
+                                <div class="package-item-name">케이뱅크 세이프박스</div>
+                                <div class="package-item-benefit">자유입출금, 파킹통장</div>
+                            </div>
+                            <div class="package-item-rate">3.2%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            addMessage('완벽해요! 고객님의 생애주기와 목표에 맞는 금융 패키지를 구성했습니다.' + packageHtml, 'bot');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+
+            analyzeMessage(message);
+        }
+
+        function analyzeMessage(message) {
+            let response = '';
+            let updated = false;
+
+            // 생애주기 감지
+            if (!profile.lifecycle) {
+                if (message.includes('대학') || message.includes('학생') || message.includes('캠퍼스') || message.includes('학교')) {
+                    selectLifecycle('student');
+                    return;
+                }
+                if (message.includes('첫 직장') || message.includes('신입') || message.includes('취업') || message.includes('첫 월급') || message.includes('사회초년')) {
+                    selectLifecycle('newbie');
+                    return;
+                }
+                if (message.includes('결혼 준비') || message.includes('예비부부') || message.includes('약혼') || message.includes('웨딩')) {
+                    selectLifecycle('couple');
+                    return;
+                }
+                if (message.includes('신혼') || message.includes('아이') || message.includes('육아') || message.includes('출산')) {
+                    selectLifecycle('married');
+                    return;
+                }
+                if (message.includes('은퇴') || message.includes('퇴직') || message.includes('노후')) {
+                    selectLifecycle('retirement');
+                    return;
+                }
+
+                const ageMatch = message.match(/(\d+)\s*살|(\d+)\s*세/);
+                if (ageMatch) {
+                    const age = parseInt(ageMatch[1] || ageMatch[2]);
+                    if (age < 25) {
+                        selectLifecycle('student');
+                        return;
+                    } else if (age < 35) {
+                        addMessage('20-30대시군요. 혹시 직장에 다니고 계신가요? 아니면 결혼 준비 중이신가요?', 'bot');
+                        return;
+                    } else if (age < 45) {
+                        addMessage('30-40대시군요. 현재 가족 상황이 어떻게 되시나요?', 'bot');
+                        return;
+                    } else {
+                        selectLifecycle('retirement');
+                        return;
+                    }
+                }
+            }
+
+            // 숫자 추출 (더 유연한 패턴)
+            const numberMatch = message.match(/(\d+(?:,\d+)?)\s*만?\s*원?/);
+            const pureNumber = message.match(/^(\d+(?:,\d+)?)$/);
+
+            let extractedNumber = null;
+            if (numberMatch) {
+                extractedNumber = numberMatch[1].replace(/,/g, '');
+            } else if (pureNumber) {
+                extractedNumber = pureNumber[1].replace(/,/g, '');
+            }
+
+            // 소득 감지 (컨텍스트 기반 + 키워드)
+            if (!profile.income && extractedNumber) {
+                const hasIncomeKeyword = message.includes('월급') || message.includes('급여') ||
+                                        message.includes('소득') || message.includes('수입') ||
+                                        message.includes('벌어');
+
+                // 소득을 물어보는 중이거나 키워드가 있으면 소득으로 인식
+                if (askingFor === 'income' || hasIncomeKeyword) {
+                    profile.income = extractedNumber + '만원';
+                    document.getElementById('financeValue').textContent = `월 ${profile.income}`;
+                    askingFor = null;
+                    updated = true;
+                    response = `월 소득 ${profile.income}으로 설정했습니다. `;
+                }
+            }
+
+            // 저축 감지 (컨텍스트 기반 + 키워드)
+            if (!profile.savings && extractedNumber && !updated) {
+                const hasSavingsKeyword = message.includes('저축') || message.includes('모으') ||
+                                         message.includes('가능') || message.includes('남') ||
+                                         message.includes('모아');
+
+                // 저축을 물어보는 중이거나 키워드가 있으면 저축으로 인식
+                if (askingFor === 'savings' || hasSavingsKeyword) {
+                    profile.savings = extractedNumber + '만원';
+                    document.getElementById('financeValue').textContent = `월 ${profile.income || '?'} / 저축 ${profile.savings}`;
+                    askingFor = null;
+                    updated = true;
+                    response = `월 저축 ${profile.savings}으로 설정했습니다. `;
+                }
+            }
+
+            // Step 2 완료 확인
+            if (profile.income && profile.savings) {
+                document.getElementById('step2').classList.add('completed');
+                document.querySelector('#step2 .step-icon').textContent = '✓';
+            }
+
+            if (updated) {
+                updateProgress();
+                checkCompletion();
+            }
+
+            // 다음 질문 생성
+            if (!profile.lifecycle) {
+                response += '현재 어떤 상황이신지 알려주세요. 학생이신가요? 직장인이신가요? 결혼 준비 중이신가요?';
+                askingFor = null;
+            } else if (!profile.income) {
+                response += '월 소득이 얼마나 되시나요? (예: 300만원, 300)';
+                askingFor = 'income';
+            } else if (!profile.savings) {
+                response += '매월 저축 가능한 금액은 얼마나 되시나요? (예: 50만원, 50)';
+                askingFor = 'savings';
+            } else if (profile.goals.length === 0) {
+                response += '좋습니다! 이제 금융 목표를 선택해주세요. ';
+                askingFor = null;
+            } else {
+                response += '모든 정보가 입력되었습니다. 최적의 패키지를 구성 중입니다...';
+                askingFor = null;
+            }
+
+            setTimeout(() => {
+                addMessage(response, 'bot');
+            }, 1000);
+        }
+
+        function addMessage(text, sender) {
+            const container = document.getElementById('messagesContainer');
+
+            const messageHtml = `
+                <div class="message ${sender}">
+                    <div class="message-avatar">${sender === 'user' ? 'You' : 'AI'}</div>
+                    <div class="message-content">
+                        <div class="message-bubble">${text}</div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', messageHtml);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendQuick(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+    </script>
+</body>
+</html>

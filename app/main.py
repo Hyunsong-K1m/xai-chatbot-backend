@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.routers import rag, health, mobile_api, openbanking_api
 from app.vector.chroma_client import get_chroma_collection
 
@@ -20,7 +22,7 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "서버 정상 동작 중"}
+    return FileResponse("static/index.html")
 
 @app.get("/test-search")
 def test_search(query: str):
@@ -37,6 +39,9 @@ app.include_router(health.router, prefix=API_PREFIX)
 app.include_router(rag.router, prefix=API_PREFIX)
 app.include_router(openbanking_api.router)  # prefix는 라우터에서 정의됨
 app.include_router(mobile_api.router)  # prefix는 라우터에서 정의됨
+
+# 정적 파일 서빙
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 if __name__ == "__main__":
     import uvicorn
